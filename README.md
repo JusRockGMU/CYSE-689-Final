@@ -2,9 +2,107 @@
 
 ## Overview
 
-This project implements an evidence-grounding validation framework that reduces hallucinations in LLM-generated penetration testing reports by 79% (from 4.2% to 0.9%). The system validates LLM-generated claims against structured Nmap scan data to flag unsupported assertions.
+This project implements an evidence-grounding validation framework that reduces hallucinations in LLM-generated penetration testing reports by **79%** (from 4.2% to 0.9%). The system validates LLM-generated claims against structured Nmap scan data to flag unsupported assertions.
 
 **Key Result**: 89% of reports achieved perfect accuracy (0% unsupported claims) with production-ready performance (<$0.01 cost, <1 minute per report).
+
+---
+
+## Quick Start (Makefile Workflow)
+
+The entire project is automated through the Makefile. Run everything with simple commands:
+
+### 1. Initial Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/JusRockGMU/CYSE-689-Final.git
+cd CYSE-689-Final
+
+# Set up environment (creates venv, installs dependencies)
+make setup
+
+# Check status
+make status
+```
+
+### 2. Prerequisites
+
+Install Ollama (https://ollama.ai) and pull the model:
+
+```bash
+ollama pull llama3.1:8b
+```
+
+**Optional**: For Claude comparison, create `.env` file:
+
+```bash
+echo "ANTHROPIC_API_KEY=your_key_here" > .env
+```
+
+### 3. Run the Complete Pipeline
+
+```bash
+# Run everything (parse → baseline → validated → claude → evaluate)
+make all
+```
+
+Or run individual stages:
+
+```bash
+# Parse Nmap scans to JSON facts
+make parse
+
+# Generate baseline reports (Ollama without validation)
+make baseline
+
+# Generate validated reports (Ollama + validator)
+make validated
+
+# Generate Claude reports (Claude + validator) - requires API key
+make claude
+
+# Run 3-way comparison
+make evaluate-three
+
+# Quick 2-way comparison (skip Claude to save cost)
+make quick
+```
+
+### 4. Clean Up
+
+```bash
+# Remove generated output (keeps venv)
+make clean
+
+# Complete reset (removes venv too)
+make clean-all
+```
+
+---
+
+## Available Makefile Targets
+
+Run `make help` to see all available commands:
+
+| Command | Description |
+|---------|-------------|
+| `make setup` | Create virtual environment and install dependencies |
+| `make parse` | Parse Nmap XML scans to JSON facts |
+| `make baseline` | Generate baseline reports (Ollama without validation) |
+| `make validated` | Generate validated reports (Ollama + validator) |
+| `make claude` | Generate Claude reports (Claude + validator) |
+| `make evaluate-three` | Run 3-way comparison (Baseline vs Validated vs Claude) |
+| `make all` | Run complete pipeline |
+| `make quick` | Quick run (skip Claude to save cost) |
+| `make download-scans` | Download additional scans from Vulnerable-Box-Resources (optional) |
+| `make status` | Show project status |
+| `make clean` | Remove generated output files |
+| `make clean-all` | Remove output and virtual environment |
+| `make ollama-check` | Check Ollama status and model |
+| `make version` | Show version info |
+
+---
 
 ## Architecture
 
@@ -23,60 +121,18 @@ Baseline      Validated
     3-Way Evaluation
 ```
 
-## Quick Start
-
-### 1. Setup Environment
-
-```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Install Ollama (https://ollama.ai)
-# Pull the model
-ollama pull llama3.1:8b
-```
-
-### 2. Set Up Claude API (Optional)
-
-```bash
-# Create .env file with your Anthropic API key
-echo "ANTHROPIC_API_KEY=your_key_here" > .env
-```
-
-### 3. Run the Pipeline
-
-```bash
-# Parse all Nmap scans
-python src/parser.py
-
-# Generate baseline reports (Ollama without validation)
-python src/baseline_generator.py
-
-# Generate validated reports (Ollama + validator)
-python src/validated_generator.py
-
-# Generate Claude reports (Claude + validator)
-python src/claude_generator.py
-
-# Compute 3-way comparison
-python src/three_way_evaluator.py
-```
-
-Or use the Makefile:
-
-```bash
-make all  # Run entire pipeline
-```
+---
 
 ## Project Structure
 
 ```
-pentest_report_generator/
-├── src/
+CYSE-689-Final/
+├── Makefile                      # Automation (run everything from here)
+├── README.md                     # This file
+├── requirements.txt              # Python dependencies (4 packages)
+├── .gitignore                    # Git exclusions
+│
+├── src/                          # Source code (7 Python files)
 │   ├── parser.py                 # Extract facts from Nmap XML
 │   ├── validator.py              # Evidence-grounding validation
 │   ├── baseline_generator.py     # Ollama without validation
@@ -85,14 +141,19 @@ pentest_report_generator/
 │   ├── evaluator.py              # Compute metrics per system
 │   └── three_way_evaluator.py    # Compare all 3 systems
 │
-├── data/
-│   ├── raw_scans/                # 20 Nmap XML files (VulnHub machines)
-│   └── DATASET_INFO.md           # Dataset documentation
-│
-├── requirements.txt              # Python dependencies
-├── Makefile                      # Automation commands
-└── README.md                     # This file
+└── data/
+    ├── DATASET_INFO.md           # Dataset documentation
+    └── raw_scans/                # 20 Nmap XML files (VulnHub machines)
 ```
+
+**Generated by pipeline** (gitignored):
+- `output/parsed_facts/` - JSON facts extracted from scans
+- `output/reports/baseline/` - Baseline reports
+- `output/reports/validated/` - Validated reports
+- `output/reports/claude/` - Claude reports
+- `output/metrics/` - Evaluation results
+
+---
 
 ## Core Components
 
@@ -119,6 +180,8 @@ Computes comparative metrics:
 - Perfect report rate (0% unsupported)
 - Statistical significance (t-tests, Cohen's d)
 
+---
+
 ## Results Summary
 
 | System | Unsupported Rate | Perfect Reports | Cost per Report |
@@ -129,19 +192,85 @@ Computes comparative metrics:
 
 **Generalization**: Test set from independent source (HackTheBox) outperformed training set (VulnHub), proving no overfitting.
 
+---
+
 ## Dataset
 
-20 vulnerable machines from VulnHub:
+**Included**: 20 Nmap XML scans from VulnHub vulnerable machines:
 - Metasploitable-2
 - Kioptrix series  
 - Bob, Chronos, DerpNStink, Devguru
-- See [data/DATASET_INFO.md](data/DATASET_INFO.md) for complete list
+- And 12 more (see [data/DATASET_INFO.md](data/DATASET_INFO.md))
+
+**Optional**: Download 100+ additional scans:
+```bash
+make download-scans
+```
+
+This clones [Vulnerable-Box-Resources](https://github.com/InfoSecWarrior/Vulnerable-Box-Resources) for extended testing.
+
+---
+
+## Manual Usage (Without Makefile)
+
+If you prefer to run Python scripts directly:
+
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Parse scans
+python src/parser.py --input data/raw_scans --output output/parsed_facts
+
+# Generate baseline reports
+python src/baseline_generator.py --facts output/parsed_facts --output output/reports/baseline
+
+# Generate validated reports
+python src/validated_generator.py --facts output/parsed_facts --output output/reports/validated
+
+# Evaluate
+python src/evaluator.py --baseline output/reports/baseline --validated output/reports/validated --output output/metrics
+```
+
+---
 
 ## Requirements
 
-- Python 3.9+
-- Ollama (local LLM)
-- Anthropic API key (optional, for Claude comparison)
+- **Python 3.9+**
+- **Ollama** (local LLM) - https://ollama.ai
+- **Anthropic API key** (optional, for Claude comparison)
+
+Dependencies (installed by `make setup`):
+- `ollama` - Ollama LLM integration
+- `anthropic` - Claude API client
+- `fuzzywuzzy` - Fuzzy string matching for version validation
+- `python-Levenshtein` - String similarity metrics
+
+---
+
+## Troubleshooting
+
+### Ollama not running
+```bash
+make ollama-check  # Check status
+# If not installed, visit https://ollama.ai
+# If installed but not running, start it and pull the model:
+ollama serve
+ollama pull llama3.1:8b
+```
+
+### Virtual environment issues
+```bash
+make clean-all  # Remove everything
+make setup      # Recreate from scratch
+```
+
+### Permission errors
+```bash
+chmod +x src/*.py  # Make scripts executable
+```
+
+---
 
 ## Course Information
 
@@ -150,11 +279,16 @@ Computes comparative metrics:
 **Semester**: Fall 2025  
 **Author**: Jake Rockwell
 
+---
+
 ## Citation
 
 If you use this code, please cite the accompanying paper:
-*Evidence-Grounding: A Systematic Approach to Reducing LLM Hallucinations in Automated Penetration Testing Reports*
+
+> Rockwell, J. (2025). *Evidence-Grounding: A Systematic Approach to Reducing LLM Hallucinations in Automated Penetration Testing Reports*. CYSE 689 Final Project, George Mason University.
+
+---
 
 ## License
 
-Educational use only.
+Educational use only. See repository for details.

@@ -37,3 +37,6 @@ data/parsed_facts/
 data/reports/
 results/
 metrics/
+
+# Optional downloads
+Vulnerable-Box-Resources/

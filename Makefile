@@ -43,6 +43,18 @@ $(VENV)/bin/activate: requirements.txt
 
 ##@ Data Processing
 
+download-scans: ## Download additional Nmap scans from Vulnerable-Box-Resources (optional)
+	@echo "$(COLOR_BLUE)Downloading Vulnerable-Box-Resources...$(COLOR_RESET)"
+	@if [ ! -d "Vulnerable-Box-Resources" ]; then \
+		echo "$(COLOR_YELLOW)Cloning repository...$(COLOR_RESET)"; \
+		git clone https://github.com/InfoSecWarrior/Vulnerable-Box-Resources.git; \
+		echo "$(COLOR_GREEN)[SUCCESS] Downloaded additional scan resources$(COLOR_RESET)"; \
+		echo "$(COLOR_BLUE)Available in: Vulnerable-Box-Resources/$(COLOR_RESET)"; \
+		echo "$(COLOR_YELLOW)Note: Our 20 included scans are sufficient for reproducing results$(COLOR_RESET)"; \
+	else \
+		echo "$(COLOR_YELLOW)Vulnerable-Box-Resources already exists$(COLOR_RESET)"; \
+	fi
+
 parse: ## Parse Nmap XML scans to JSON facts
 	@echo "$(COLOR_BLUE)Parsing Nmap XML files...$(COLOR_RESET)"
 	@mkdir -p $(OUTPUT_DIR)/parsed_facts
