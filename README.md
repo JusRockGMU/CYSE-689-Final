@@ -1,4 +1,4 @@
-# Evidence-Grounding: Reducing LLM Hallucinations in Automated Pentest Reports
+# Evidence-Grounding: A Validator for LLM-Generated Penetration Testing Reports
 
 ## Overview
 
@@ -285,7 +285,7 @@ chmod +x src/*.py  # Make scripts executable
 
 If you use this code, please cite the accompanying paper:
 
-> Rockwell, J. (2025). *Evidence-Grounding: A Systematic Approach to Reducing LLM Hallucinations in Automated Penetration Testing Reports*. CYSE 689 Final Project, George Mason University.
+> Rockwell, J. (2025). *Evidence-Grounding: A Validator for LLM-Generated Penetration Testing Reports*. CYSE 689 Final Project, George Mason University.
 
 ---
 
