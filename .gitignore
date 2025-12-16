@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Output directories
+output/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archive (drafts not for submission)
+_archive_drafts/
+
+# Environment variables
+.env
+.env.local
+
+# Generated files (users will create these)
+data/parsed_facts/
+data/reports/
+results/
+metrics/
